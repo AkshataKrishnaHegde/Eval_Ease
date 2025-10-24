@@ -77,7 +77,7 @@ const Login = ({ setUser }) => {
       // In a real app, this would involve a separate API call to an admin authentication service
       const adminUser = {
         id: "admin-id-001", // A mock ID for admin
-        email: email, // Use the entered email for mock admin
+        email: "admin@evalease.com", // Use the entered email for mock admin
         type: "admin",
         name: "Admin User", // Mock name
       };
@@ -86,10 +86,11 @@ const Login = ({ setUser }) => {
       if (email === "admin@evalease.com" && password === "adminpass") {
         setUser(adminUser);
         localStorage.setItem("loggedInUser", JSON.stringify(adminUser));
+        localStorage.setItem("adminId", adminUser.id);
         localStorage.setItem("userType", "admin");
         localStorage.setItem("userEmail", adminUser.email);
         localStorage.setItem("employeeName", adminUser.name); // Storing admin name in employeeName for simplicity
-        navigate("/admin/dashboard");
+        navigate("/admin/dashboard", { replace: true });
         showMessage("success", "Admin login successful!");
       } else {
         showMessage("error", "Invalid admin credentials.");
