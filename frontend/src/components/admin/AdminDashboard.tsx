@@ -12,7 +12,7 @@ import {
 
 const AdminDashboard = ({ user }) => {
   const navigate = useNavigate();
-  const [recentForms, setRecentForms] = useState([]); // Changed here
+  const [recentForms, setRecentForms] = useState([]);
   const [stats, setStats] = useState({
     totalForms: 0,
     responses: 0,
@@ -33,11 +33,13 @@ const AdminDashboard = ({ user }) => {
     orange: "text-orange-600",
   };
 
+  // Logout function
   const handleLogout = () => {
-    localStorage.removeItem("employeeId");
+    localStorage.removeItem("adminId");
     localStorage.removeItem("userType");
     localStorage.removeItem("employeeName");
-    navigate("/login");
+    
+    navigate("/login", { replace: true }); // replace history so back button can't go to dashboard
   };
 
   const statsData = [
@@ -61,6 +63,7 @@ const AdminDashboard = ({ user }) => {
     },
   ];
 
+  // Fetch recent forms
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_SERVER_PORT}/api/forms/recent`)
@@ -68,6 +71,7 @@ const AdminDashboard = ({ user }) => {
       .catch((err) => console.error("Error fetching forms:", err));
   }, []);
 
+  // Fetch dashboard stats
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_SERVER_PORT}/admin/dashboard/stats`)
@@ -80,6 +84,27 @@ const AdminDashboard = ({ user }) => {
       })
       .catch((err) => console.error("Error fetching dashboard stats:", err));
   }, []);
+
+  // Prevent back navigation
+  useEffect(() => {
+    window.history.pushState(null, "", window.location.href);
+    const handleBack = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, []);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    const adminId = localStorage.getItem("adminId");
+    if (!adminId) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gray-50">
