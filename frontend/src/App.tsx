@@ -16,7 +16,7 @@ import NotFound from "./pages/NotFound";
 import { useState } from 'react';
 
 const queryClient = new QueryClient();
-
+//App function
 const App = () => {
   const [user, setUser] = useState(null);
 
