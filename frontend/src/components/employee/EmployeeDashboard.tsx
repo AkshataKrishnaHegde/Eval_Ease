@@ -13,18 +13,34 @@ const EmployeeDashboard = ({ user }) => {
   const [loadingForms, setLoadingForms] = useState(true);
   const [errorForms, setErrorForms] = useState(null);
 
+  // Protect the dashboard route
+  useEffect(() => {
+    const employeeId = localStorage.getItem("employeeId");
+    const userType = localStorage.getItem("userType");
+
+    if (!employeeId || userType !== "employee") {
+      navigate("/login", { replace: true });
+    }
+
+    // Prevent going back to login using browser back button
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = () => {
+      window.history.go(1);
+    };
+  }, [navigate]);
+
   const handleLogout = () => {
     localStorage.removeItem("employeeId");
     localStorage.removeItem("userType");
     localStorage.removeItem("employeeName");
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
-  // Callback function to fetch forms from the backend, memoized for efficiency
+  // Fetch employee forms
   const fetchEmployeeForms = useCallback(async () => {
     setLoadingForms(true);
     setErrorForms(null);
-    const employeeId = localStorage.getItem("employeeId"); // Get employeeId from local storage
+    const employeeId = localStorage.getItem("employeeId");
 
     if (!employeeId) {
       setErrorForms("Employee ID not found. Please log in.");
@@ -33,15 +49,10 @@ const EmployeeDashboard = ({ user }) => {
     }
 
     try {
-      // Call the backend endpoint that categorizes forms for the employee
       const res = await fetch(
-        `${
-          import.meta.env.VITE_SERVER_PORT
-        }/api/employee-dashboard/forms/${employeeId}`
+        `${import.meta.env.VITE_SERVER_PORT}/api/employee-dashboard/forms/${employeeId}`
       );
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
 
       if (!data.success || !data.data) {
@@ -64,7 +75,7 @@ const EmployeeDashboard = ({ user }) => {
     fetchEmployeeForms();
   }, [fetchEmployeeForms]);
 
-  // Helper function to format date for display
+  // Format date
   const formatDate = (dateTimeString) => {
     if (!dateTimeString) return "N/A";
     const date = new Date(dateTimeString);
@@ -103,15 +114,13 @@ const EmployeeDashboard = ({ user }) => {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Pending Feedback Forms (now fetched from backend) */}
+        {/* Pending Feedback Forms */}
         <div className="bg-white rounded-xl shadow-sm border mb-8">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold text-gray-900">
               Pending Feedback Forms
             </h2>
-            <p className="text-gray-600">
-              Please provide feedback for available forms
-            </p>
+            <p className="text-gray-600">Please provide feedback for available forms</p>
           </div>
           <div className="p-6">
             {loadingForms ? (
@@ -131,9 +140,7 @@ const EmployeeDashboard = ({ user }) => {
                         <FileText className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">
-                          {form.title}
-                        </h3>
+                        <h3 className="font-medium text-gray-900">{form.title}</h3>
                         <p className="text-sm text-gray-600">
                           {form.description || "No description available."}
                         </p>
@@ -146,22 +153,18 @@ const EmployeeDashboard = ({ user }) => {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500">
-                No pending feedback forms.
-              </p>
+              <p className="text-center text-gray-500">No pending feedback forms.</p>
             )}
           </div>
         </div>
 
-        {/* Completed Feedback Forms (now fetched from backend) */}
+        {/* Completed Feedback Forms */}
         <div className="bg-white rounded-xl shadow-sm border mb-8">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold text-gray-900">
               Completed Feedback Forms
             </h2>
-            <p className="text-gray-600">
-              View forms you have already submitted
-            </p>
+            <p className="text-gray-600">View forms you have already submitted</p>
           </div>
           <div className="p-6">
             {loadingForms ? (
@@ -180,10 +183,7 @@ const EmployeeDashboard = ({ user }) => {
                         <CheckCircle className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">
-                          {form.title}
-                        </h3>
-                        {/* Display submittedAt if available */}
+                        <h3 className="font-medium text-gray-900">{form.title}</h3>
                         <p className="text-sm text-gray-600">
                           {form.description || "No description available."}
                           {form.submittedAt &&
@@ -198,9 +198,7 @@ const EmployeeDashboard = ({ user }) => {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500">
-                No completed feedback forms.
-              </p>
+              <p className="text-center text-gray-500">No completed feedback forms.</p>
             )}
           </div>
         </div>
